@@ -23,6 +23,11 @@ fi
 
 echo -e "\nSTARTING SCRIPT COPY\n"
 
+# so different invocation of  job_distributor.sh does not conflict with each other in creating workerdep*.sh
+# issuer PID will be added in name
+# problem is that remote node will keep accumulating these scripts
+MYPID=$$
+
 jobcount=0
 # read the job list file
 # create a worker file which will run the inteneded script with intended args on intended host
@@ -42,24 +47,24 @@ while read -r line; do
         cmd=$cmd" "$arg
     done
     # redirect the cmd output and error to different log
-    cmd=$cmd" 1>output_"$jobcount".log 2>output_"$jobcount".err"
+    cmd=$cmd" 1>output_"${jobcount}_${MYPID}".log 2>output_"${jobcount}_${MYPID}".err"
 
     # create the glue script which calls the actual script
     # why it's needed?
     # the idea was that we can execute both script or cmd on the intended host
     # although later we have coded only for bash script execution (notice that cmd in glue script starts with "bash")
-    echo $cmd>workerdep_${jobcount}.sh
+    echo $cmd>workerdep_${jobcount}_${MYPID}.sh
 
     # transfer the script
     ip=${jobargs[0]}
     port=${jobargs[1]}
     workdir=${jobargs[2]}
     script=${jobargs[3]}
-    scp -P $port workerdep_${jobcount}.sh $script $ip:$workdir
+    scp -P $port workerdep_${jobcount}_${MYPID}.sh $script $ip:$workdir
 
     echo -e "\ncopied script to $ip:$workdir\n"
 
-    rm workerdep_${jobcount}.sh
+    rm workerdep_${jobcount}_${MYPID}.sh
 done < $JOBLISTFILE
 
 # another pass to run the copied script
@@ -75,7 +80,7 @@ while read -r line; do
     ip=${jobargs[0]}
     port=${jobargs[1]}
     workdir=${jobargs[2]}
-    cmdstr='cd '${workdir}';bash 'workerdep_${jobcount}.sh
+    cmdstr='cd '${workdir}';bash 'workerdep_${jobcount}_${MYPID}.sh
 
     # forking otherwise will be stuck
     ssh -p $port $ip $cmdstr &
