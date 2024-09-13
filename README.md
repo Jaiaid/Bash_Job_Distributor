@@ -1,7 +1,10 @@
 # Bash Job SSH Distributor Script
 
 ## Overview
-This is a utility bash script which comes as a outcome from another research project. The objective is to distribute and run multiple jobs on multiple remote nodes through SSH. The assumptions are followings 
+This is a utility bash script which comes as a outcome from another research project. The objective is to distribute and run multiple jobs on multiple remote nodes through SSH. 
+The usecase was to distribute deep learning jobs from a node to bunch of remote nodes
+
+The assumptions are followings 
 1. The hosts have ssh server and can be accessed from the node which will run job_distributor.sh
 2. The last started job will finish last.
 3. There is a 30s grace period after the last job finish to allow other hosts job to wrap up ()
@@ -34,10 +37,10 @@ An example ``joblist.txt`` is provided. Notice there is a newline at the end, so
 
 For example, on the remote 192.168.0.1.12 following cmd will be executed from ~ directory
 ```
-bash workerdep_2.sh
+bash workerdep_2_{PID of bash execution}.sh
 ```
 
-``workerdep_2.sh`` will contain this cmd
+``workerdep_2_{PID of bash execution}.sh`` will contain this cmd
 ```
 bash example_job2.sh 3 4 5 6 7 8 9 1>output_2.log 2>output_2.err
 ```
